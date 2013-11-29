@@ -19,11 +19,28 @@ class CRM_Emailadressenleden_Form_Report_EmailadressenLedenEvent extends CRM_Rep
       'civicrm_contact' => array(
         'dao' => 'CRM_Contact_DAO_Contact',
         'fields' => array(
-          'sort_name' => array(
+          'display_name' => array(
             'title' => ts('Contact Name'),
             'required' => TRUE,
             'default' => TRUE,
             'no_repeat' => TRUE,
+          ),
+		  'email_greeting_display' => array(
+            'title' => ts('Email greeting'),
+            'default' => TRUE,
+          ),
+		  'postal_greeting_display' => array(
+            'title' => ts('Postal greeting'),
+            'default' => TRUE,
+          ),
+		  'job_title' => array(
+            'title' => ts('Job title'),
+            'default' => TRUE,
+          ),
+		  'employer_id' => array(
+            'title' => ts('Employer'),
+			'no_display' => TRUE,
+			'required' => TRUE,
           ),
           'id' => array(
             'no_display' => TRUE,
@@ -57,6 +74,16 @@ class CRM_Emailadressenleden_Form_Report_EmailadressenLedenEvent extends CRM_Rep
         ),
         'grouping' => 'contact-fields',
       ),
+	  'civicrm_contact_organisatie' => array(
+		'alias' => 'civicrm_contact_organisatie',
+        'dao' => 'CRM_Contact_DAO_Contact',
+        'fields' => array(
+          'nick_name' => array(
+            'title' => ts('Organisation name'),
+            'default' => TRUE,
+          ),
+	    ),
+	  ),
       'civicrm_membership' => array(
         'dao' => 'CRM_Member_DAO_Membership',
         'fields' => array(
@@ -124,7 +151,7 @@ class CRM_Emailadressenleden_Form_Report_EmailadressenLedenEvent extends CRM_Rep
 		),
         'grouping' => 'contact-fields',
       ),
-	        'civicrm_participant' =>
+	  'civicrm_participant' =>
       array(
         'dao' => 'CRM_Event_DAO_Participant',
         'fields' =>
@@ -201,6 +228,8 @@ class CRM_Emailadressenleden_Form_Report_EmailadressenLedenEvent extends CRM_Rep
 
     $this->_from = "
          FROM  civicrm_contact {$this->_aliases['civicrm_contact']} {$this->_aclFrom}
+			   LEFT JOIN civicrm_contact {$this->_aliases['civicrm_contact_organisatie']} ON
+					{$this->_aliases['civicrm_contact']}.employer_id = {$this->_aliases['civicrm_contact_organisatie']}.id
                LEFT JOIN civicrm_membership {$this->_aliases['civicrm_membership']}
                           ON {$this->_aliases['civicrm_contact']}.id =
                              {$this->_aliases['civicrm_membership']}.contact_id AND {$this->_aliases['civicrm_membership']}.is_test = 0
@@ -345,16 +374,29 @@ class CRM_Emailadressenleden_Form_Report_EmailadressenLedenEvent extends CRM_Rep
         $entryFound = TRUE;
       }
 
-      if (array_key_exists('civicrm_contact_sort_name', $row) &&
-        $rows[$rowNum]['civicrm_contact_sort_name'] &&
+      if (array_key_exists('civicrm_contact_display_name', $row) &&
+        $rows[$rowNum]['civicrm_contact_display_name'] &&
         array_key_exists('civicrm_contact_id', $row)
       ) {
         $url = CRM_Utils_System::url("civicrm/contact/view",
           'reset=1&cid=' . $row['civicrm_contact_id'],
           $this->_absoluteUrl
         );
-        $rows[$rowNum]['civicrm_contact_sort_name_link'] = $url;
-        $rows[$rowNum]['civicrm_contact_sort_name_hover'] = ts("View Contact Summary for this Contact.");
+        $rows[$rowNum]['civicrm_contact_display_name_link'] = $url;
+        $rows[$rowNum]['civicrm_contact_display_name_hover'] = ts("View Contact Summary for this Contact.");
+        $entryFound = TRUE;
+      }
+	  
+	  if (array_key_exists('civicrm_contact_organisatie_nick_name', $row) &&
+        $rows[$rowNum]['civicrm_contact_organisatie_nick_name'] &&
+        array_key_exists('civicrm_contact_employer_id', $row)
+      ) {
+        $url = CRM_Utils_System::url("civicrm/contact/view",
+          'reset=1&cid=' . $row['civicrm_contact_employer_id'],
+          $this->_absoluteUrl
+        );
+        $rows[$rowNum]['civicrm_contact_organisatie_nick_name_link'] = $url;
+        $rows[$rowNum]['civicrm_contact_organisatie_nick_name_hover'] = ts("View Contact Summary for this Contact.");
         $entryFound = TRUE;
       }
 
@@ -376,5 +418,9 @@ class CRM_Emailadressenleden_Form_Report_EmailadressenLedenEvent extends CRM_Rep
 		$events[$dao->id] = CRM_Utils_Date::customFormat(substr($dao->start_date, 0, 10)) . " :: {$dao->title} (ID {$dao->id})";
 		}
 		return $events;
+	}
+	
+	function addOrderBys() {
+		$this->assign('orderByOptions', array());
 	}
 }
