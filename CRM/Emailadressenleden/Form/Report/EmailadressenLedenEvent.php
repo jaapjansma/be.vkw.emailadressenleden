@@ -225,7 +225,7 @@ class CRM_Emailadressenleden_Form_Report_EmailadressenLedenEvent extends CRM_Rep
               INNER JOIN civicrm_email {$this->_aliases['civicrm_email']}
                         ON {$this->_aliases['civicrm_contact']}.id =
                            {$this->_aliases['civicrm_email']}.contact_id AND
-                           {$this->_aliases['civicrm_email']}.location_type_id = 8\n";
+                           {$this->_aliases['civicrm_email']}.location_type_id = 7\n";
     }
   }
 
